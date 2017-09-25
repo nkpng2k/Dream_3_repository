@@ -30,3 +30,12 @@ filtered[filtered < edges] = 0
 
 io.imshow(filtered)
 io.show()
+
+dbl_card = io.imread('samples/IMG_1199.jpg', as_grey = True)
+
+edges = filters.thresholding.threshold_minimum(dbl_card)
+dbl_filtered = dbl_card.copy()
+dbl_filtered[dbl_filtered < edges] = 0
+
+io.imshow(dbl_filtered)
+io.show()
