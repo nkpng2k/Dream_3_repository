@@ -4,14 +4,14 @@ The purpose of this is to learn how to operate scikit-image and scikit-video
 I will use these libraries in tandem with some classifiers to identify cards dealt
 and count each card
 """
-from skimage import data, io, filters
+from skimage import data, io, filters, morphology, segmentation, measure, color
 import numpy as np
+import matplotlib.pyplot as plt
 
 image = data.coins()
 edges = filters.sobel(image)
 io.imshow(edges)
 io.show()
-
 
 """
 train a model to classify cards
@@ -39,3 +39,13 @@ dbl_filtered[dbl_filtered < edges] = 0
 
 io.imshow(dbl_filtered)
 io.show()
+
+
+
+
+
+
+
+"""
+Bottom of Page
+"""
