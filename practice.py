@@ -42,6 +42,7 @@ ski.io.imshow(dbl_filtered)
 ski.io.show()
 
 #NOTE: need to use contour lines to generate bounding box
+#NOTE: I now have cv2. Will this help?
 
 
 """
