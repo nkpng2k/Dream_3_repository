@@ -10,4 +10,4 @@ _**REAL WORK**_
 _counting cards using video analysis of blackjack table_
 
 Will use scikit-image and scikit-video to analyze blackjack table videos with the intent of
-identifying new cards dealt to count cards and produce a recommendation of how much to bet. 
+identifying new cards dealt to count cards and produce a recommendation of how much to bet.
