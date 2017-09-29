@@ -11,7 +11,9 @@ class CardImageProcessing(object):
     Class that will process card images within a file and return the processed images
 
     INPUT: directory with images
-    OUTPUT: images processed into 1-D vectors as list of numpy arrays
+    ATTRIBUTES: raw images read into list
+                images processed into 1-D vectors as list of numpy arrays
+                labels for each vectorized image
     """
 
     def __init__(self, file_path):
@@ -34,12 +36,39 @@ class CardImageProcessing(object):
 
         return files, file_ext, file_names
 
+    def label_images(self, delimiter = None,labels = None):
+        """
+        will manually assign labels for each of the images or if no manual labels are
+        provided will pull the characters up until a specified delimiter as the label
+
+        INPUT: labels --> (list or tuples) optional, assign manual labels for images
+                          tuple will have this order: (card type, card suit)
+               delimiter --> (string) delimiter that will is expected to separate the card type and
+                             card suit. example: queen_heart.png - delimiter = '_'
+        OUTPUT: 2 lists --> card type and card suit
+        """
+        card_type = []
+        card_suit = []
+        if labels == None:
+            for name in self.file_names:
+                print name
+                # card_type.append(name.split(delimiter)[0])
+                # card_suit.append(name.split(delimiter)[1])
+        else:
+            for tup in labels:
+                card_type.append(tup[0])
+                card_suit.append(tup[1])
+        return card_type, card_suit
+
+    def _read_in_images(self):
+        for f in self.files:
+            pass
 
 
 
 if __name__ == "__main__":
     card_process = CardImageProcessing('/Users/npng/galvanize/Dream_3_repository/card_images')
-
+    c_type, c_suit = card_process.label_images(delimiter = '_')
 
 
 
