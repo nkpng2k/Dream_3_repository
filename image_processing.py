@@ -5,7 +5,7 @@ import glob
 from os import listdir
 from os.path import isfile, join, splitext
 from collections import Counter
-from skimage import io, filters
+from skimage import io, filters, color
 
 class CardImageProcessing(object):
     """
@@ -29,11 +29,14 @@ class CardImageProcessing(object):
 
     def _read_in_images(self):
         raw_list = []
+        grey_list = []
         for f in self.files:
-            img = ski.io.imread(self.file_path+'/'+f)
+            img = io.imread(self.file_path+'/'+f)
             raw_list.append(img)
-
-        return raw_list
+        for img in raw_list:
+            grey = color.rgb2grey(img)
+            grey_list.append(grey)
+        return raw_list, grey_list
 
     # NOTE: all methods are written below this note
 
@@ -75,24 +78,20 @@ class CardImageProcessing(object):
                 card_suit.append(tup[1])
         return card_type, card_suit
 
-    def bounding_box_crop(self):
+    def bounding_box_crop(self, images):
+        """
+        Detect edges, mask everything outside of edges to 0,
+        determine coordinates for corners of card,
+        crop box tangent to corners of card,
+        return cropped images
+        """
         pass
 
-    def rotate_images(self, images = None):
-        if images == None:
-            # rotate images
-            pass
-        else:
-            pass
+    def rotate_images(self, images):
+        pass
 
-    def vectorize_images(self, images = None):
-        if images == None:
-            # vectorize and return raw_img's
-            pass
-        else:
-            # vectorize images and return image vectors
-            pass
-
+    def vectorize_images(self, images):
+        pass
 
 
 
@@ -100,17 +99,11 @@ class CardImageProcessing(object):
 
 if __name__ == "__main__":
     card_process = CardImageProcessing()
-    raw_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
+    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
 
-
-
-
-
-
-
-    plt.imshow(cv2.cvtColor(raw_imgs[1], cv2.COLOR_BGR2RGB))
-    plt.show()
+    io.imshow(grey_imgs[5][5:10])
+    io.show()
 
     # import glob
     # images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
