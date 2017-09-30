@@ -5,10 +5,12 @@ import glob
 from os import listdir
 from os.path import isfile, join, splitext
 from collections import Counter
+from skimage import io, filters
 
 class CardImageProcessing(object):
     """
     Class that will process card images within a file and return the processed images
+    NOTE: must run file_info(self, file_path) method before any other preprocessing
 
     INPUT: directory with images
     ATTRIBUTES: self.raw_img - raw images read into list
@@ -19,38 +21,38 @@ class CardImageProcessing(object):
              vectorize_images (returns: array of 1-D vectors, raw images vectorized into 1-D array)
     """
 
-    def __init__(self, file_path):
-        self.file_path = file_path
-        files, f_ext, f_names = self._file_info()
-        self.files = files
-        self.file_names = f_names
-        self.file_ext = f_ext
-        self.raw_img = self._read_in_images()
+    def __init__(self):
+        self.file_path = None
+        self.files = None
+        self.file_names = None
+        self.file_ext = None
 
-    def _file_info(self):
-        onlyfiles = [f for f in listdir(self.file_path) if isfile(join(self.file_path, f))]
+    def _read_in_images(self):
+        raw_list = []
+        for f in self.files:
+            img = ski.io.imread(self.file_path+'/'+f)
+            raw_list.append(img)
+
+        return raw_list
+
+    # NOTE: all methods are written below this note
+
+    def file_info(self, file_path):
+        onlyfiles = [f for f in listdir(file_path) if isfile(join(file_path, f))]
         file_ext_count = Counter()
         for f in onlyfiles:
             fname, file_type = splitext(f)
             file_ext_count[file_type] += 1
 
-        file_ext = file_ext_count.most_common()[0][0]
-        files = [f for f in onlyfiles if splitext(f)[1] == file_ext]
-        file_names = [splitext(f)[0] for f in onlyfiles if splitext(f)[1] == file_ext]
+        self.file_path = file_path
+        self.file_ext = file_ext_count.most_common()[0][0]
+        self.files = [f for f in onlyfiles if splitext(f)[1] == self.file_ext]
+        self.file_names = [splitext(f)[0] for f in onlyfiles if splitext(f)[1] == self.file_ext]
 
-        return files, file_ext, file_names
+        raw_imgs = self._read_in_images()
+        return raw_imgs
 
-    def _read_in_images(self):
-        raw_list = []
-        for f in self.files:
-            img = cv2.imread(self.file_path+'/'+f)
-            raw_list.append(img)
-
-        return raw_list
-
-    #NOTE: define all methods below this note,
-
-    def label_images(self, delimiter = None,labels = None):
+    def generate_labels(self, delimiter = None,labels = None):
         """
         will manually assign labels for each of the images or if no manual labels are
         provided will pull the characters up until a specified delimiter as the label
@@ -73,6 +75,9 @@ class CardImageProcessing(object):
                 card_suit.append(tup[1])
         return card_type, card_suit
 
+    def bounding_box_crop(self):
+        pass
+
     def rotate_images(self, images = None):
         if images == None:
             # rotate images
@@ -94,13 +99,18 @@ class CardImageProcessing(object):
 
 
 if __name__ == "__main__":
-    card_process = CardImageProcessing('/Users/npng/galvanize/Dream_3_repository/card_images')
-    c_type, c_suit = card_process.label_images(delimiter = '_')
+    card_process = CardImageProcessing()
+    raw_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
+    c_type, c_suit = card_process.generate_labels(delimiter = '_')
 
 
 
-    # plt.imshow(cv2.cvtColor(card_process.raw_img[0], cv2.COLOR_BGR2RGB))
-    # plt.show()
+
+
+
+
+    plt.imshow(cv2.cvtColor(raw_imgs[1], cv2.COLOR_BGR2RGB))
+    plt.show()
 
     # import glob
     # images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
