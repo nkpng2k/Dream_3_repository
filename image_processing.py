@@ -11,9 +11,12 @@ class CardImageProcessing(object):
     Class that will process card images within a file and return the processed images
 
     INPUT: directory with images
-    ATTRIBUTES: raw images read into list
-                images processed into 1-D vectors as list of numpy arrays
-                labels for each vectorized image
+    ATTRIBUTES: self.raw_img - raw images read into list
+                self.files - list of files
+                self.file_names - list of files sans extensions
+                self.file_ext - file extension used to parse files
+    METHODS: label_images (returns: list of labels)
+             vectorize_images (returns: array of 1-D vectors, raw images vectorized into 1-D array)
     """
 
     def __init__(self, file_path):
@@ -22,6 +25,7 @@ class CardImageProcessing(object):
         self.files = files
         self.file_names = f_names
         self.file_ext = f_ext
+        self.raw_img = self._read_in_images()
 
     def _file_info(self):
         onlyfiles = [f for f in listdir(self.file_path) if isfile(join(self.file_path, f))]
@@ -35,6 +39,16 @@ class CardImageProcessing(object):
         file_names = [splitext(f)[0] for f in onlyfiles if splitext(f)[1] == file_ext]
 
         return files, file_ext, file_names
+
+    def _read_in_images(self):
+        raw_list = []
+        for f in self.files:
+            img = cv2.imread(self.file_path+'/'+f)
+            raw_list.append(img)
+
+        return raw_list
+
+    #NOTE: define all methods below this note,
 
     def label_images(self, delimiter = None,labels = None):
         """
@@ -51,18 +65,31 @@ class CardImageProcessing(object):
         card_suit = []
         if labels == None:
             for name in self.file_names:
-                print name
-                # card_type.append(name.split(delimiter)[0])
-                # card_suit.append(name.split(delimiter)[1])
+                card_type.append(name.split(delimiter)[0])
+                card_suit.append(name.split(delimiter)[1])
         else:
             for tup in labels:
                 card_type.append(tup[0])
                 card_suit.append(tup[1])
         return card_type, card_suit
 
-    def _read_in_images(self):
-        for f in self.files:
+    def rotate_images(self, images = None):
+        if images == None:
+            # rotate images
             pass
+        else:
+            pass
+
+    def vectorize_images(self, images = None):
+        if images == None:
+            # vectorize and return raw_img's
+            pass
+        else:
+            # vectorize images and return image vectors
+            pass
+
+
+
 
 
 
@@ -72,20 +99,22 @@ if __name__ == "__main__":
 
 
 
+    # plt.imshow(cv2.cvtColor(card_process.raw_img[0], cv2.COLOR_BGR2RGB))
+    # plt.show()
 
-# import glob
-# images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
-#
-# mypath='/Users/npng/galvanize/Dream_3_repository/card_images'
-# onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
-#
-# images = numpy.empty(len(onlyfiles), dtype=object)
-# for n in range(0, len(onlyfiles)):
-#   images[n] = cv2.imread( join(mypath,onlyfiles[n]) )
-#
-# for f in listdir(mypath):
-#     fname, extension = splitext(f)
-#     print fname, extension
+    # import glob
+    # images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
+    #
+    # mypath='/Users/npng/galvanize/Dream_3_repository/card_images'
+    # onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
+    #
+    # images = numpy.empty(len(onlyfiles), dtype=object)
+    # for n in range(0, len(onlyfiles)):
+    #   images[n] = cv2.imread( join(mypath,onlyfiles[n]) )
+    #
+    # for f in listdir(mypath):
+    #     fname, extension = splitext(f)
+    #     print fname, extension
 
 
 
