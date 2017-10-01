@@ -89,17 +89,10 @@ class CardImageProcessing(object):
             edges = filters.thresholding.threshold_minimum(img)
             img[img < edges] = 0
 
-            non_zero_coords_list = []
-            for y, row in enumerate(img):
-                for x, col in enumerate(img):
-                        if col < 0.9:
-                            coord = (x,y)
-                            non_zero_coords_list.append(coord)
+            coords = np.argwhere(img > 0.9)
 
-            non_zero_coords_list = np.array(non_zero_coords_list)
-
-            minx, miny = non_zero_coords_list.min(axis = 0)
-            maxx, maxy = non_zero_coords_list.max(axis = 0)
+            miny, minx = coords.min(axis = 0)
+            maxy, maxx = coords.max(axis = 0)
 
         #TODO: need to use minx, maxx, miny, maxy to crop image, return all these images
 

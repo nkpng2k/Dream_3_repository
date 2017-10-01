@@ -29,21 +29,10 @@ edges = filters.threshold_minimum(card_image)
 filtered = card_image.copy()
 filtered[filtered < edges] = 0
 
+coords = np.argwhere(filtered > 0.9)
 
-edges = filters.thresholding.threshold_otsu(img)
-img[img < edges] = 0
-
-non_zero_coords_list = []
-for y, row in enumerate(filtered):
-    for x, col in enumerate(row):
-            if col > 0.9:
-                coord = (x,y)
-                non_zero_coords_list.append(coord)
-
-non_zero_coords_list = np.array(non_zero_coords_list)
-
-minx, miny = non_zero_coords_list.min(axis = 0)
-maxx, maxy = non_zero_coords_list.max(axis = 0)
+miny, minx = coords.min(axis = 0)
+maxy, maxx = coords.max(axis = 0)
 
 xs = [minx, minx, maxx, maxx]
 ys = [miny, maxy, miny, maxy]
