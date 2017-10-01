@@ -25,9 +25,33 @@ have the model identify it and count
 card_image = io.imread('samples/IMG_1197.JPG', as_grey = True)
 
 # filters.thresholding.threshold_minimum finds minimum value to separate edges
-edges = filters.thresholding.threshold_minimum(card_image)
+edges = filters.threshold_minimum(card_image)
 filtered = card_image.copy()
 filtered[filtered < edges] = 0
+
+
+edges = filters.thresholding.threshold_otsu(img)
+img[img < edges] = 0
+
+non_zero_coords_list = []
+for y, row in enumerate(filtered):
+    for x, col in enumerate(row):
+            if col > 0.9:
+                coord = (x,y)
+                non_zero_coords_list.append(coord)
+
+non_zero_coords_list = np.array(non_zero_coords_list)
+
+minx, miny = non_zero_coords_list.min(axis = 0)
+maxx, maxy = non_zero_coords_list.max(axis = 0)
+
+xs = [minx, minx, maxx, maxx]
+ys = [miny, maxy, miny, maxy]
+
+fig, ax = plt.subplots()
+ax.imshow(filtered, cmap = plt.cm.gray)
+ax.scatter(xs, ys)
+plt.show()
 
 contours = measure.find_contours(filtered, edges)
 fig, ax = plt.subplots()
