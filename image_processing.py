@@ -5,7 +5,8 @@ import glob
 from os import listdir
 from os.path import isfile, join, splitext
 from collections import Counter
-from skimage import io, filters, color
+from skimage import io, filters, color, transform
+import math
 
 class CardImageProcessing(object):
     """
@@ -109,15 +110,14 @@ class CardImageProcessing(object):
             y_int = np.nonzero(img[:,0])[0][0]
             mid_pt = (img.shape[0]/2.0)
 
-            if y_int > img:
-                pass
-            elif y_int < img:
-                pass
-            else:
-                pass #rotate 45 degrees in direction of length
+            if img.shape[0] < img.shape[1]:
+                img = transform.rotate(img, 90)
 
-            #NOTE: after rotation re-crop image
+            #NOTE: need to rotate to make vertical
 
+            rotated_list.append(img)
+
+        return rotated_list
 
     def vectorize_images(self, images):
         pass

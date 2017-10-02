@@ -43,15 +43,20 @@ np.nonzero(cropped[0])[0][0]
 y_intercept = np.nonzero(cropped[:,0])[0][0]
 
 if y_intercept > (cropped.shape[0]/2.0): #rotate counterclockwise --> rotate by theta
-    print np.nonzero(cropped[0])[0][0]
+    x_int = np.nonzero(cropped[0])[0][0]
+    angle = math.tan(float(x_int)/y_intercept)
+    deg = math.degrees(angle)
+    cropped = transform.rotate(cropped, deg)
 else: #rotate clockwise --> find theta rotate by -theta
     pass
 
 
-rotated = transform.rotate(cropped, 20)
+img = transform.hough_line(cropped)
+
+rotated = transform.rotate(cropped, 35)
 
 fig, ax = plt.subplots()
-ax.imshow(cropped, cmap = plt.cm.gray)
+ax.imshow(img, cmap = plt.cm.gray)
 # ax.scatter(xs, ys)
 plt.show()
 
