@@ -106,7 +106,17 @@ class CardImageProcessing(object):
 
         for img in images:
 
-            pass
+            y_int = np.nonzero(img[:,0])[0][0]
+            mid_pt = (img.shape[0]/2.0)
+
+            if y_int > img:
+                pass
+            elif y_int < img:
+                pass
+            else:
+                pass #rotate 45 degrees in direction of length
+
+            #NOTE: after rotation re-crop image
 
 
     def vectorize_images(self, images):

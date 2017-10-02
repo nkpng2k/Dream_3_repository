@@ -39,10 +39,19 @@ ys = [miny, maxy, miny, maxy]
 
 cropped = filtered[miny:maxy,minx:maxx]
 
+np.nonzero(cropped[0])[0][0]
+y_intercept = np.nonzero(cropped[:,0])[0][0]
+
+if y_intercept > (cropped.shape[0]/2.0): #rotate counterclockwise --> rotate by theta
+    print np.nonzero(cropped[0])[0][0]
+else: #rotate clockwise --> find theta rotate by -theta
+    pass
+
+
 rotated = transform.rotate(cropped, 20)
 
 fig, ax = plt.subplots()
-ax.imshow(rotated, cmap = plt.cm.gray)
+ax.imshow(cropped, cmap = plt.cm.gray)
 # ax.scatter(xs, ys)
 plt.show()
 
