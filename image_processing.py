@@ -85,6 +85,7 @@ class CardImageProcessing(object):
         crop box tangent to corners of card,
         return cropped images
         """
+        cropped_list = []
         for img in images:
             edges = filters.thresholding.threshold_minimum(img)
             img[img < edges] = 0
@@ -96,7 +97,9 @@ class CardImageProcessing(object):
 
             cropped = img[miny:maxy,minx:maxx]
 
-        #TODO: need to use minx, maxx, miny, maxy to crop image, return all these images
+            cropped_list.append(cropped)
+
+        return cropped_list
 
     def rotate_images(self, images):
         pass
@@ -112,8 +115,9 @@ if __name__ == "__main__":
     card_process = CardImageProcessing()
     raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
+    cropped_imgs = card_process.bounding_box_crop(grey_imgs)
 
-    io.imshow(grey_imgs[5][5:10])
+    io.imshow(cropped_imgs[5])
     io.show()
 
     # import glob
