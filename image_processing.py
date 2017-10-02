@@ -94,6 +94,8 @@ class CardImageProcessing(object):
             miny, minx = coords.min(axis = 0)
             maxy, maxx = coords.max(axis = 0)
 
+            cropped = img[miny:maxy,minx:maxx]
+
         #TODO: need to use minx, maxx, miny, maxy to crop image, return all these images
 
     def rotate_images(self, images):

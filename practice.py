@@ -37,9 +37,11 @@ maxy, maxx = coords.max(axis = 0)
 xs = [minx, minx, maxx, maxx]
 ys = [miny, maxy, miny, maxy]
 
+cropped = filtered[miny:maxy,minx:maxx]
+
 fig, ax = plt.subplots()
-ax.imshow(filtered, cmap = plt.cm.gray)
-ax.scatter(xs, ys)
+ax.imshow(cropped, cmap = plt.cm.gray)
+# ax.scatter(xs, ys)
 plt.show()
 
 contours = measure.find_contours(filtered, edges)
