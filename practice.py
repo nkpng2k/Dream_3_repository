@@ -4,7 +4,7 @@ The purpose of this is to learn how to operate scikit-image and scikit-video
 I will use these libraries in tandem with some classifiers to identify cards dealt
 and count each card
 """
-from skimage import data, filters, io, measure
+from skimage import data, filters, io, measure, transform
 import numpy as np
 import matplotlib.pyplot as plt
 import PIL as pil
@@ -39,8 +39,10 @@ ys = [miny, maxy, miny, maxy]
 
 cropped = filtered[miny:maxy,minx:maxx]
 
+rotated = transform.rotate(cropped, 20)
+
 fig, ax = plt.subplots()
-ax.imshow(cropped, cmap = plt.cm.gray)
+ax.imshow(rotated, cmap = plt.cm.gray)
 # ax.scatter(xs, ys)
 plt.show()
 

@@ -102,7 +102,12 @@ class CardImageProcessing(object):
         return cropped_list
 
     def rotate_images(self, images):
-        pass
+        rotated_list = []
+
+        for img in images:
+
+            pass
+
 
     def vectorize_images(self, images):
         pass
