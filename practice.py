@@ -8,6 +8,7 @@ from skimage import data, filters, io, measure, transform
 import numpy as np
 import matplotlib.pyplot as plt
 import PIL as pil
+import math
 
 image = data.coins()
 edges = filters.sobel(image)
@@ -39,12 +40,17 @@ ys = [miny, maxy, miny, maxy]
 
 cropped = filtered[miny:maxy,minx:maxx]
 
-np.nonzero(cropped[0])[0][0]
 y_intercept = np.nonzero(cropped[:,0])[0][0]
 
 if y_intercept > (cropped.shape[0]/2.0): #rotate counterclockwise --> rotate by theta
-    x_int = np.nonzero(cropped[0])[0][0]
-    angle = math.tan(float(x_int)/y_intercept)
+
+    x1 = np.nonzero(cropped[y_intercept/4])[0][0]
+    x2 = np.nonzero(cropped[3*y_intercept/4])[0][0]
+
+    y_dist = np.nonzero(cropped[:,x2])[0][0] - np.nonzero(cropped[:,x1])[0][0]
+    x_dist = x1 - x2
+
+    angle = math.tan(float(x_dist)/y_dist)
     deg = math.degrees(angle)
     cropped = transform.rotate(cropped, deg)
 else: #rotate clockwise --> find theta rotate by -theta
@@ -56,13 +62,15 @@ img = transform.hough_line(cropped)
 rotated = transform.rotate(cropped, 35)
 
 fig, ax = plt.subplots()
-ax.imshow(img, cmap = plt.cm.gray)
+ax.imshow(cropped, cmap = plt.cm.gray)
 # ax.scatter(xs, ys)
 plt.show()
 
 contours = measure.find_contours(filtered, edges)
 fig, ax = plt.subplots()
-ax.imshow(filtered, interpolation='nearest', cmap=plt.cm.gray)
+ax.imshow(cropped, interpolation='nearest', cmap=plt.cm.gray)
+
+contours[2]
 
 for n, contour in enumerate(contours):
     ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
@@ -86,28 +94,19 @@ import cv2
 test = cv2.imread('card_images/6_d.bmp')
 test_jpg = cv2.imread('samples/IMG_1197.jpg')
 
-plt.imshow(cv2.cvtColor(test, cv2.COLOR_BGR2RGB))
-plt.show()
+im = cv2.imread('samples/IMG_1197.jpg')
+gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+blur = cv2.GaussianBlur(gray,(1,1),1000)
+flag, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY)
 
-plt.imshow(test_jpg, cmap = 'gray')
-plt.show()
+contours = cv2.findContours(thresh,1,2)
+cnt = contours[0]
+cv2.contourArea(cnt)
+areas = []
+for contour in contours:
+    area = cv2.contourArea(contour)
+    areas.append(area)
 
-test_grey = cv2.cvtColor(test_jpg, cv2.COLOR_BGR2GRAY)
-thresh = cv2.adaptiveThreshold(test_grey,255,1,1,11,2)
-im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-cv2.drawContours(test_grey, contours, -1, (0,255,0), 3)
-plt.imshow(thresh)
-plt.show()
-
-
-
-
-plt.imshow(test_grey[20:25], cmap = 'gray')
-plt.show()
-
-
-plt.imshow(cv2.cvtColor(test_jpg, cv2.COLOR_BGR2RGB))
-plt.show()
 
 """
 Bottom of Page
