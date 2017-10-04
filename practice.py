@@ -4,7 +4,7 @@ The purpose of this is to learn how to operate scikit-image and scikit-video
 I will use these libraries in tandem with some classifiers to identify cards dealt
 and count each card
 """
-from skimage import data, filters, io, measure, transform
+from skimage import data, filters, io, measure, transform, feature
 import numpy as np
 import matplotlib.pyplot as plt
 import PIL as pil
@@ -30,6 +30,7 @@ edges = filters.threshold_minimum(card_image)
 filtered = card_image.copy()
 filtered[filtered < edges] = 0
 
+edges2 = feature.canny(filtered, sigma=3)
 coords = np.argwhere(filtered > 0.9)
 
 miny, minx = coords.min(axis = 0)
@@ -56,13 +57,12 @@ if y_intercept > (cropped.shape[0]/2.0): #rotate counterclockwise --> rotate by 
 else: #rotate clockwise --> find theta rotate by -theta
     pass
 
-
 img = transform.hough_line(cropped)
 
 rotated = transform.rotate(cropped, 35)
 
 fig, ax = plt.subplots()
-ax.imshow(cropped, cmap = plt.cm.gray)
+ax.imshow(edges2, cmap = plt.cm.gray)
 # ax.scatter(xs, ys)
 plt.show()
 
