@@ -102,22 +102,11 @@ class CardImageProcessing(object):
 
         return cropped_list
 
+
+    #NOTE: Completed methods above this line
+    
     def rotate_images(self, images):
-        rotated_list = []
-
-        for img in images:
-
-            y_int = np.nonzero(img[:,0])[0][0]
-            mid_pt = (img.shape[0]/2.0)
-
-            if img.shape[0] < img.shape[1]:
-                img = transform.rotate(img, 90)
-
-            #NOTE: need to rotate to make vertical
-
-            rotated_list.append(img)
-
-        return rotated_list
+        pass
 
     def vectorize_images(self, images):
         pass

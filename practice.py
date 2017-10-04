@@ -30,7 +30,6 @@ edges = filters.threshold_minimum(card_image)
 filtered = card_image.copy()
 filtered[filtered < edges] = 0
 
-edges2 = feature.canny(filtered, sigma=3)
 coords = np.argwhere(filtered > 0.9)
 
 miny, minx = coords.min(axis = 0)
@@ -41,39 +40,11 @@ ys = [miny, maxy, miny, maxy]
 
 cropped = filtered[miny:maxy,minx:maxx]
 
-y_intercept = np.nonzero(cropped[:,0])[0][0]
-
-if y_intercept > (cropped.shape[0]/2.0): #rotate counterclockwise --> rotate by theta
-
-    x1 = np.nonzero(cropped[y_intercept/4])[0][0]
-    x2 = np.nonzero(cropped[3*y_intercept/4])[0][0]
-
-    y_dist = np.nonzero(cropped[:,x2])[0][0] - np.nonzero(cropped[:,x1])[0][0]
-    x_dist = x1 - x2
-
-    angle = math.tan(float(x_dist)/y_dist)
-    deg = math.degrees(angle)
-    cropped = transform.rotate(cropped, deg)
-else: #rotate clockwise --> find theta rotate by -theta
-    pass
-
-img = transform.hough_line(cropped)
-
-rotated = transform.rotate(cropped, 35)
+#NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
 
 fig, ax = plt.subplots()
-ax.imshow(edges2, cmap = plt.cm.gray)
+ax.imshow(img[2], cmap = plt.cm.gray)
 # ax.scatter(xs, ys)
-plt.show()
-
-contours = measure.find_contours(filtered, edges)
-fig, ax = plt.subplots()
-ax.imshow(cropped, interpolation='nearest', cmap=plt.cm.gray)
-
-contours[2]
-
-for n, contour in enumerate(contours):
-    ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
 plt.show()
 
 dbl_card = io.imread('samples/IMG_1199.jpg', as_grey = True)
