@@ -81,14 +81,14 @@ if y_int > cropped.shape[0]/2:
     top_line = np.polyfit(xst, yst, 1)
     right_line = np.polyfit(xsr, ysr, 1)
 
-
+    top_line
     np.roots((left_line - top_line))
     np.roots((right_line - top_line))
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
 
 fig, ax = plt.subplots()
 ax.imshow(cropped, cmap = plt.cm.gray)
-ax.scatter([506.54, 1329.01], [0)
+ax.scatter(506.54, -50)
 # ax.scatter(xs, ys)
 plt.show()
 
