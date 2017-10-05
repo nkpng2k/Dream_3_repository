@@ -40,10 +40,41 @@ ys = [miny, maxy, miny, maxy]
 
 cropped = filtered[miny:maxy,minx:maxx]
 
+y_int = int(np.median(np.nonzero(cropped[:,0])[0][0]))
+
+if y_int > cropped.shape[0]/2:
+    height = cropped.shape[0]
+    width = cropped.shape[1]
+
+    yl1 = int(y_int*0.25)
+    yl2 = int(y_int*0.75)
+
+    xl1 = np.nonzero(cropped[yl1])[0][0]
+    xl2 = np.nonzero(cropped[yl2])[0][0]
+
+    x_int = int(np.median(np.nonzero(cropped[0])[0][0]))
+
+    xt1 = int(x_int + (0.25 * (width - x_int)))
+    xt2 = int(x_int + (0.75 * (width - x_int)))
+
+    yt1 = np.nonzero(cropped[:,xt1])[0][0]
+    yt2 = np.nonzero(cropped[:,xt2])[0][0]
+
+    xsl = np.array([xl1, xl2])
+    ysl = np.array([yl1, yl2])
+
+    xst = np.array([xt1, xt2])
+    yst = np.array([yt1, yt2])
+
+    left_line = np.polyfit(xsl, ysl, 1)
+    top_line = np.polyfit(xst, yst, 1)
+
+    np.roots((left_line - top_line))
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
 
 fig, ax = plt.subplots()
-ax.imshow(img[2], cmap = plt.cm.gray)
+ax.imshow(cropped, cmap = plt.cm.gray)
+ax.scatter(506.54, 0)
 # ax.scatter(xs, ys)
 plt.show()
 
