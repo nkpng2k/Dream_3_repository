@@ -66,15 +66,29 @@ if y_int > cropped.shape[0]/2:
     xst = np.array([xt1, xt2])
     yst = np.array([yt1, yt2])
 
+    y_int_right = np.nonzero(cropped[:,-1])[0][0]
+
+    yr1 = int(y_int_right + (.25 * (height-y_int_right)))
+    yr2 = int(y_int_right + (.75 * (height-y_int_right)))
+
+    xr1 = np.nonzero(cropped[yr1])[0][-1]
+    xr2 = np.nonzero(cropped[yr2])[0][-1]
+
+    xsr = np.array([xr1, xr2])
+    ysr = np.array([yr1, yr2])
+
     left_line = np.polyfit(xsl, ysl, 1)
     top_line = np.polyfit(xst, yst, 1)
+    right_line = np.polyfit(xsr, ysr, 1)
+
 
     np.roots((left_line - top_line))
+    np.roots((right_line - top_line))
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
 
 fig, ax = plt.subplots()
 ax.imshow(cropped, cmap = plt.cm.gray)
-ax.scatter(506.54, 0)
+ax.scatter([506.54, 1329.01], [0)
 # ax.scatter(xs, ys)
 plt.show()
 
