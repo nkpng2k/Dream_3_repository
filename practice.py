@@ -51,11 +51,10 @@ if left_int > cropped.shape[0]/2:
 
     q1 = cropped[ : y_int_left, : x_int_top]
     q2 = cropped[ : y_int_right, -x_int_top : ]
-    q3 = cropped[-y_int_left : , : x_int_bot]
-    q4 = cropped[-y_int_right : , -x_int_bot : ]
+    q3 = cropped[-(cropped.shape[0]-y_int_left) : , : x_int_bot]
+    q4 = cropped[-(cropped.shape[0]-y_int_right) : , -(cropped.shape[0]-x_int_bot) : ]
 
-    edges = feature.canny(q1)
-    lines = transform.probabilistic_hough_line(edges, threshold = 50, line_length = 200, line_gap = 1)
+    lines = transform.probabilistic_hough_line(feature.canny(q4), threshold = 10, line_length = 200, line_gap = 1)
     len(lines)
 else:
     pass
@@ -71,7 +70,7 @@ len(lines)
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
 
 fig, ax = plt.subplots()
-ax.imshow(cropped, cmap = plt.cm.gray)
+ax.imshow(q1, cmap = plt.cm.gray)
 for line in lines:
     p0, p1 = line
     ax.plot((p0[0], p1[0]), (p0[1], p1[1]))
