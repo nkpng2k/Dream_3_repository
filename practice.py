@@ -40,55 +40,41 @@ ys = [miny, maxy, miny, maxy]
 
 cropped = filtered[miny:maxy,minx:maxx]
 
-y_int = int(np.median(np.nonzero(cropped[:,0])[0][0]))
+left_int = int(np.median(np.nonzero(cropped[:,0])[0][0]))
 
-if y_int > cropped.shape[0]/2:
-    height = cropped.shape[0]
-    width = cropped.shape[1]
 
-    yl1 = int(y_int*0.25)
-    yl2 = int(y_int*0.75)
-
-    xl1 = np.nonzero(cropped[yl1])[0][0]
-    xl2 = np.nonzero(cropped[yl2])[0][0]
-
-    x_int = int(np.median(np.nonzero(cropped[0])[0][0]))
-
-    xt1 = int(x_int + (0.25 * (width - x_int)))
-    xt2 = int(x_int + (0.75 * (width - x_int)))
-
-    yt1 = np.nonzero(cropped[:,xt1])[0][0]
-    yt2 = np.nonzero(cropped[:,xt2])[0][0]
-
-    xsl = np.array([xl1, xl2])
-    ysl = np.array([yl1, yl2])
-
-    xst = np.array([xt1, xt2])
-    yst = np.array([yt1, yt2])
-
+if left_int > cropped.shape[0]/2:
+    y_int_left = left_int
     y_int_right = np.nonzero(cropped[:,-1])[0][0]
+    x_int_top = np.nonzero(cropped[0])[0][0]
+    x_int_bot = np.nonzero(cropped[-1])[0][0]
 
-    yr1 = int(y_int_right + (.25 * (height-y_int_right)))
-    yr2 = int(y_int_right + (.75 * (height-y_int_right)))
+    q1 = cropped[ : y_int_left, : x_int_top]
+    q2 = cropped[ : y_int_right, -x_int_top : ]
+    q3 = cropped[-y_int_left : , : x_int_bot]
+    q4 = cropped[-y_int_right : , -x_int_bot : ]
 
-    xr1 = np.nonzero(cropped[yr1])[0][-1]
-    xr2 = np.nonzero(cropped[yr2])[0][-1]
+    edges = feature.canny(q1)
+    lines = transform.probabilistic_hough_line(edges, threshold = 50, line_length = 200, line_gap = 1)
+    len(lines)
+else:
+    pass
 
-    xsr = np.array([xr1, xr2])
-    ysr = np.array([yr1, yr2])
 
-    left_line = np.polyfit(xsl, ysl, 1)
-    top_line = np.polyfit(xst, yst, 1)
-    right_line = np.polyfit(xsr, ysr, 1)
 
-    top_line
-    np.roots((left_line - top_line))
-    np.roots((right_line - top_line))
+
+
+
+edges = feature.canny(cropped, low_threshold = 0.2, high_threshold = 1)
+lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=300,line_gap=10)
+len(lines)
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
 
 fig, ax = plt.subplots()
 ax.imshow(cropped, cmap = plt.cm.gray)
-ax.scatter(506.54, -50)
+for line in lines:
+    p0, p1 = line
+    ax.plot((p0[0], p1[0]), (p0[1], p1[1]))
 # ax.scatter(xs, ys)
 plt.show()
 
