@@ -5,10 +5,12 @@ I will use these libraries in tandem with some classifiers to identify cards dea
 and count each card
 """
 from skimage import data, filters, io, measure, transform, feature
+from skimage.feature import corner_fast, corner_peaks, corner_harris
 import numpy as np
 import matplotlib.pyplot as plt
 import PIL as pil
 import math
+from scipy import stats
 
 image = data.coins()
 edges = filters.sobel(image)
@@ -24,53 +26,50 @@ have the model identify it and count
 
 #read in sample with grey scale -- Numpy values 0 = black, 1 = white
 card_image = io.imread('samples/IMG_1197.JPG', as_grey = True)
+card_image_2 = io.imread('samples/IMG_1198.JPG', as_grey = True)
 
 # filters.thresholding.threshold_minimum finds minimum value to separate edges
 edges = filters.threshold_minimum(card_image)
 filtered = card_image.copy()
 filtered[filtered < edges] = 0
+edges_2 = filters.threshold_minimum(card_image_2)
+filtered_2 = card_image_2.copy()
+filtered_2[filtered_2 < edges] = 0
 
 coords = np.argwhere(filtered > 0.9)
-
 miny, minx = coords.min(axis = 0)
 maxy, maxx = coords.max(axis = 0)
 
-xs = [minx, minx, maxx, maxx]
-ys = [miny, maxy, miny, maxy]
-
 cropped = filtered[miny:maxy,minx:maxx]
 
-left_int = int(np.median(np.nonzero(cropped[:,0])[0][0]))
+coords = np.argwhere(filtered_2 > 0.9)
+miny, minx = coords.min(axis = 0)
+maxy, maxx = coords.max(axis = 0)
+
+cropped_2 = filtered_2[miny:maxy,minx:maxx]
 
 
-if left_int > cropped.shape[0]/2:
-    y_int_left = left_int
-    y_int_right = np.nonzero(cropped[:,-1])[0][0]
-    x_int_top = np.nonzero(cropped[0])[0][0]
-    x_int_bot = np.nonzero(cropped[-1])[0][0]
-
-    q1 = cropped[ : y_int_left, : x_int_top]
-    q2 = cropped[ : y_int_right, -x_int_top : ]
-    q3 = cropped[-(cropped.shape[0]-y_int_left) : , : x_int_bot]
-    q4 = cropped[-(cropped.shape[0]-y_int_right) : , -(cropped.shape[0]-x_int_bot) : ]
-
-    lines = transform.probabilistic_hough_line(feature.canny(q4), threshold = 10, line_length = 200, line_gap = 1)
-    len(lines)
-else:
-    pass
-
-
-
-
-
-
-edges = feature.canny(cropped, low_threshold = 0.2, high_threshold = 1)
-lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=300,line_gap=10)
+edges = feature.canny(cropped_2, low_threshold = 0.2, high_threshold = 1)
+lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
 len(lines)
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
+lines
+set_slopes = set()
+set_lines = set()
+for line in lines:
+    p0, p1 = line
+    slope, intercept, _, _, _ = stats.linregress([p0[0], p1[0]], [p0[1], p1[1]])
+    if True not in np.isclose(round(slope, 2), list(set_slopes), atol = 1e-02):
+        set_slopes.add(round(slope, 2))
+        set_lines.add(line)
+set_slopes
+set_lines
+
+
+np.isclose(2.93, set([-0.53, -0.47, 2.94]), atol = 1e-02)
 
 fig, ax = plt.subplots()
-ax.imshow(q1, cmap = plt.cm.gray)
+ax.imshow(cropped_2, cmap = plt.cm.gray)
 for line in lines:
     p0, p1 = line
     ax.plot((p0[0], p1[0]), (p0[1], p1[1]))
@@ -87,6 +86,24 @@ io.imshow(dbl_filtered)
 io.show()
 
 #NOTE: need to use contour lines to generate bounding box
+
+contours = measure.find_contours(cropped, .8, 'high')
+
+contours
+# Display the image and plot all contours found
+fig, ax = plt.subplots()
+ax.imshow(cropped, interpolation='nearest', cmap=plt.cm.gray)
+
+for n, contour in enumerate(contours):
+    ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+
+ax.axis('image')
+ax.set_xticks([])
+ax.set_yticks([])
+plt.show()
+
+
+
 #NOTE: I now have cv2. Will this help?
 #NOTE: will need to create your own training data, vectorize the data and label
 

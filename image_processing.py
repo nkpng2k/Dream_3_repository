@@ -104,7 +104,7 @@ class CardImageProcessing(object):
 
 
     #NOTE: Completed methods above this line
-    
+
     def rotate_images(self, images):
         pass
 
