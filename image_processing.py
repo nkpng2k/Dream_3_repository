@@ -39,18 +39,32 @@ class CardImageProcessing(object):
         return raw_list, grey_list
 
     def _calculate_intersections(self, cropped_img):
-        set_slopes = set()
-        edges = feature.canny(cropped_2, low_threshold = 0.2, high_threshold = 1)
+        edges = feature.canny(cropped_img, low_threshold = 0.2, high_threshold = 1)
         lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
+
+        set_slopes, set_lines = set(), set()
+        pos_slope, neg_slope = [], []
         for line in lines:
             p0, p1 = line
             slope, intercept, _, _, _ = stats.linregress([p0[0], p1[0]], [p0[1], p1[1]])
             if True not in np.isclose(round(slope, 2), list(set_slopes), atol = 1e-02):
-                set_slopes.add((round(slope, 2), intercept))
+                set_slopes.add(round(slope, 2))
+                set_lines.add(line)
+                if slope > 0:
+                    pos_slope.append((round(slope, 2), intercept))
+                else:
+                    neg_slope.append((round(slope, 2), intercept))
 
-        #NOTE: WORKING ON THIS
+        coord_int = []
+        for slope in pos_slope:
+            coord1 = np.linalg.solve(np.array([[-slope[0], 1], [-neg_slope[0][0], 1]]), np.array([slope[1], neg_slope[0][1]]))
+            coord2 = np.linalg.solve(np.array([[-slope[0], 1], [-neg_slope[1][0], 1]]), np.array([slope[1], neg_slope[1][1]]))
+            coord_int.append(coord1)
+            coord_int.append(coord2)
 
-    # NOTE: all methods are written below this note
+        return coord_int
+
+    # ------- NOTE: all public methods below this line --------
 
     def file_info(self, file_path):
         onlyfiles = [f for f in listdir(file_path) if isfile(join(file_path, f))]
@@ -113,11 +127,11 @@ class CardImageProcessing(object):
 
         return cropped_list
 
-
-    #NOTE: Completed methods above this line
-
     def rotate_images(self, images):
-        pass
+        for img in images:
+            intersect_coords = self._calculate_intersections(img)
+            
+
 
     def vectorize_images(self, images):
         pass
@@ -133,6 +147,7 @@ if __name__ == "__main__":
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
 
     io.imshow(cropped_imgs[5])
+
     io.show()
 
     # import glob

@@ -53,32 +53,36 @@ edges = feature.canny(cropped, low_threshold = 0.2, high_threshold = 1)
 lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
 len(lines)
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
-lines
-set_slopes = set()
-set_lines = set()
+
+set_slopes, set_lines = set(), set()
+pos_slope, neg_slope = [], []
 for line in lines:
     p0, p1 = line
     slope, intercept, _, _, _ = stats.linregress([p0[0], p1[0]], [p0[1], p1[1]])
     if True not in np.isclose(round(slope, 2), list(set_slopes), atol = 1e-02):
-        set_slopes.add((round(slope, 2), intercept))
+        set_slopes.add(round(slope, 2))
         set_lines.add(line)
+        if slope > 0:
+            pos_slope.append((round(slope, 2), intercept))
+        else:
+            neg_slope.append((round(slope, 2), intercept))
 
+coord_int = []
+for slope in pos_slope:
+    coord1 = np.linalg.solve(np.array([[-slope[0], 1], [-neg_slope[0][0], 1]]), np.array([slope[1], neg_slope[0][1]]))
+    coord2 = np.linalg.solve(np.array([[-slope[0], 1], [-neg_slope[1][0], 1]]), np.array([slope[1], neg_slope[1][1]]))
+    coord_int.append(coord1)
+    coord_int.append(coord2)
 
-
-
-
-set_slopes
-set_lines
-
-
-np.isclose(2.93, set([-0.53, -0.47, 2.94]), atol = 1e-02)
+xs = [x[0] for x in coord_int]
+ys = [x[1] for x in coord_int]
 
 fig, ax = plt.subplots()
 ax.imshow(cropped, cmap = plt.cm.gray)
 for line in lines:
     p0, p1 = line
     ax.plot((p0[0], p1[0]), (p0[1], p1[1]))
-# ax.scatter(xs, ys)
+ax.scatter(xs, ys)
 plt.show()
 
 dbl_card = io.imread('samples/IMG_1199.jpg', as_grey = True)
