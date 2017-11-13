@@ -1,11 +1,10 @@
 import numpy as np
-import cv2
 import matplotlib.pyplot as plt
 import glob
 from os import listdir
 from os.path import isfile, join, splitext
 from collections import Counter
-from skimage import io, filters, color, transform
+from skimage import data, color, filters, io, measure, transform, feature
 import math
 
 class CardImageProcessing(object):
@@ -38,6 +37,18 @@ class CardImageProcessing(object):
             grey = color.rgb2grey(img)
             grey_list.append(grey)
         return raw_list, grey_list
+
+    def _calculate_intersections(self, cropped_img):
+        set_slopes = set()
+        edges = feature.canny(cropped_2, low_threshold = 0.2, high_threshold = 1)
+        lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
+        for line in lines:
+            p0, p1 = line
+            slope, intercept, _, _, _ = stats.linregress([p0[0], p1[0]], [p0[1], p1[1]])
+            if True not in np.isclose(round(slope, 2), list(set_slopes), atol = 1e-02):
+                set_slopes.add((round(slope, 2), intercept))
+
+        #NOTE: WORKING ON THIS
 
     # NOTE: all methods are written below this note
 

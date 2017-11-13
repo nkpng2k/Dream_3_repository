@@ -49,7 +49,7 @@ maxy, maxx = coords.max(axis = 0)
 cropped_2 = filtered_2[miny:maxy,minx:maxx]
 
 
-edges = feature.canny(cropped_2, low_threshold = 0.2, high_threshold = 1)
+edges = feature.canny(cropped, low_threshold = 0.2, high_threshold = 1)
 lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
 len(lines)
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
@@ -60,8 +60,13 @@ for line in lines:
     p0, p1 = line
     slope, intercept, _, _, _ = stats.linregress([p0[0], p1[0]], [p0[1], p1[1]])
     if True not in np.isclose(round(slope, 2), list(set_slopes), atol = 1e-02):
-        set_slopes.add(round(slope, 2))
+        set_slopes.add((round(slope, 2), intercept))
         set_lines.add(line)
+
+
+
+
+
 set_slopes
 set_lines
 
@@ -69,7 +74,7 @@ set_lines
 np.isclose(2.93, set([-0.53, -0.47, 2.94]), atol = 1e-02)
 
 fig, ax = plt.subplots()
-ax.imshow(cropped_2, cmap = plt.cm.gray)
+ax.imshow(cropped, cmap = plt.cm.gray)
 for line in lines:
     p0, p1 = line
     ax.plot((p0[0], p1[0]), (p0[1], p1[1]))
