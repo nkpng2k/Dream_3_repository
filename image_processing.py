@@ -201,7 +201,7 @@ class CardImageProcessing(object):
 
 if __name__ == "__main__":
     card_process = CardImageProcessing()
-    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/samples')
+    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
     warped_imgs, tl_corner = card_process.rotate_images(cropped_imgs)
