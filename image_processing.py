@@ -6,6 +6,7 @@ from os.path import isfile, join, splitext
 from collections import Counter
 from skimage import data, color, filters, io, measure, transform, feature
 import math
+from scipy import stats
 
 class CardImageProcessing(object):
     """
@@ -63,6 +64,26 @@ class CardImageProcessing(object):
             coord_int.append(coord2)
 
         return coord_int
+
+    def _orient_intersection_coords(self, coord_int):
+        xmin = coord_int[np.argmin(coord_int[:, 0]), :]
+        xmax = coord_int[np.argmax(coord_int[:, 0]), :]
+        ymin = coord_int[np.argmin(coord_int[:, 1]), :]
+        ymax = coord_int[np.argmax(coord_int[:, 1]), :]
+
+        if cropped.shape[0] < cropped.shape[1]:
+            if coord_int[np.argmin(coord_int[:, 0]), :][1] > coord_int[np.argmax(coord_int[:, 0]), :][1]:
+                tl, tr, bl, br = xmin, ymin, ymax, xmax
+            else:
+                tl, tr, bl, br = ymax, xmin, xmax, ymin
+        else:
+            if coord_int[np.argmin(coord_int[:, 0]), :][1] > coord_int[np.argmax(coord_int[:, 0]), :][1]:
+                tl, tr, bl, br = ymin, xmax, xmin, ymax
+            else:
+                tl, tr, bl, br = xmin, ymin, ymax, xmax
+
+        dst = np.array([tl, bl, br, tr])
+        return dst
 
     # ------- NOTE: all public methods below this line --------
 
@@ -128,10 +149,17 @@ class CardImageProcessing(object):
         return cropped_list
 
     def rotate_images(self, images):
+        warped_images = []
         for img in images:
             intersect_coords = self._calculate_intersections(img)
-            
+            dst = self._orient_intersection_coords(intersect_coords)
+            src = np.array([[0, 0], [0, 1000], [500, 1000], [500, 0]])
+            persp_transform = transform.ProjectiveTransform()
+            persp_transform.estimate(src, dst)
+            warped = transform.warp(cropped, persp_transform, output_shape = (1000, 500))
+            warped_images.append(warped)
 
+        return warped_images
 
     def vectorize_images(self, images):
         pass
@@ -145,9 +173,9 @@ if __name__ == "__main__":
     raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
-
-    io.imshow(cropped_imgs[5])
-
+    warped_imgs = card_process.rotate_images(cropped_imgs)
+    io.imshow(cropped_imgs[0])
+    len(cropped_imgs)
     io.show()
 
     # import glob

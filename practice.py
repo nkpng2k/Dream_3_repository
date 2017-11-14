@@ -49,7 +49,7 @@ maxy, maxx = coords.max(axis = 0)
 cropped_2 = filtered_2[miny:maxy,minx:maxx]
 
 
-edges = feature.canny(cropped, low_threshold = 0.2, high_threshold = 1)
+edges = feature.canny(cropped_2, low_threshold = 0.2, high_threshold = 1)
 lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
 len(lines)
 #NOTE: use np.polyfit(), np.roots() of two polyfits will return the intersections
@@ -74,8 +74,45 @@ for slope in pos_slope:
     coord_int.append(coord1)
     coord_int.append(coord2)
 
+coord_int = np.array(coord_int)
+
+xmin = coord_int[np.argmin(coord_int[:, 0]), :]
+xmax = coord_int[np.argmax(coord_int[:, 0]), :]
+ymin = coord_int[np.argmin(coord_int[:, 1]), :]
+ymax = coord_int[np.argmax(coord_int[:, 1]), :]
+
+if cropped_2.shape[0] < cropped_2.shape[1]:
+    if coord_int[np.argmin(coord_int[:, 0]), :][1] > coord_int[np.argmax(coord_int[:, 0]), :][1]:
+        tl, tr, bl, br = xmin, ymin, ymax, xmax
+    else:
+        tl, tr, bl, br = ymax, xmin, xmax, ymin
+else:
+    if coord_int[np.argmin(coord_int[:, 0]), :][1] > coord_int[np.argmax(coord_int[:, 0]), :][1]:
+        tl, tr, bl, br = ymin, xmax, xmin, ymax
+    else:
+        tl, tr, bl, br = xmin, ymin, ymax, xmax
+
+
+dst = np.array([tl, bl, br, tr])
+
 xs = [x[0] for x in coord_int]
 ys = [x[1] for x in coord_int]
+
+src = np.array([[0, 0], [0, 1000], [500, 1000], [500, 0]])
+test_coords = np.array([[-20, 421], [462, 1503], [1306, 1106], [904, -68]])
+
+persp_transform = transform.ProjectiveTransform()
+persp_transform.estimate(src, dst)
+warped = transform.warp(cropped_2, persp_transform, output_shape = (1000, 500))
+io.imshow(warped)
+plt.show()
+
+
+
+
+
+
+
 
 fig, ax = plt.subplots()
 ax.imshow(cropped, cmap = plt.cm.gray)
