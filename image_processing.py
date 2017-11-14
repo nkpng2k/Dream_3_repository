@@ -40,6 +40,11 @@ class CardImageProcessing(object):
         return raw_list, grey_list
 
     def _calculate_intersections(self, cropped_img):
+        """
+        Identifies probabilistic hough lines and uses those to calculate transform coordinates
+        INPUT: Single image cropped to corners of playing card
+        OUTPUT: Single list of coordinates, unordered (x, y)
+        """
         edges = feature.canny(cropped_img, low_threshold = 0.2, high_threshold = 1)
         lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
 
@@ -66,6 +71,13 @@ class CardImageProcessing(object):
         return np.array(coord_int)
 
     def _orient_intersection_coords(self, cropped, coord_int):
+        """
+        Identifies orientation of playing card. Designates coordinates from coord_int as
+        top left (tr), top right (tr), bottom left (bl), bottom right (br)
+        INPUT: Single image cropped to corners of playing card
+               coord_int --> coordinates of intersection of probabilistic hough lines
+        OUTPUT: dst --> array ordered coordinates (tl, bl, br, tr), specific order necessary for skimage ProjectiveTransform
+        """
         xmin = coord_int[np.argmin(coord_int[:, 0]), :]
         xmax = coord_int[np.argmax(coord_int[:, 0]), :]
         ymin = coord_int[np.argmin(coord_int[:, 1]), :]
@@ -88,6 +100,11 @@ class CardImageProcessing(object):
     # ------- NOTE: all public methods below this line --------
 
     def file_info(self, file_path):
+        """
+        Reads all images in a file. Identifies most common file extension as file to take as input
+        INPUT: String --> filepath to directory ('User/username/data/all_images') . do not include "/" at end of filepath
+        OUTPUT: list of raw images, converted to grey scale
+        """
         onlyfiles = [f for f in listdir(file_path) if isfile(join(file_path, f))]
         file_ext_count = Counter()
         for f in onlyfiles:
@@ -128,9 +145,9 @@ class CardImageProcessing(object):
     def bounding_box_crop(self, images):
         """
         Detect edges, mask everything outside of edges to 0,
-        determine coordinates for corners of card,
-        crop box tangent to corners of card,
-        return cropped images
+        determine coordinates for corners of card, crop box tangent to corners of card
+        INPUT: List of raw images, grey scaled
+        OUTPUT: List of cropped images. For playing cards, will crop to corners of card
         """
         cropped_list = []
         for img in images:
@@ -149,6 +166,11 @@ class CardImageProcessing(object):
         return cropped_list
 
     def rotate_images(self, images):
+        """
+        Perform projective transform on grey scaled images
+        INPUT: List of images. Must be cropped to bounding bounding box
+        OUTPUT: List of images (2-D arrays), warped to vertical orientation.
+        """
         warped_images = []
         for img in images:
             intersect_coords = self._calculate_intersections(img)
@@ -162,6 +184,12 @@ class CardImageProcessing(object):
         return warped_images
 
     def vectorize_images(self, images):
+        """
+        Generate HOG vectors for grey scaled images.
+        INPUT: List of images. Images are array type.
+        OUTPUT: vectorized_images --> list of 1-D arrays. Feature Vectors for each image
+                hog_images --> list of 2-D arrays, HOG representation of images
+        """
         vectorized_images, hog_images = [], []
         for img in images:
             vector, hog_image = feature.hog(img, orientations = 10, pixels_per_cell = (3,3),
