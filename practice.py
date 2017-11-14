@@ -4,7 +4,7 @@ The purpose of this is to learn how to operate scikit-image and scikit-video
 I will use these libraries in tandem with some classifiers to identify cards dealt
 and count each card
 """
-from skimage import data, filters, io, measure, transform, feature
+from skimage import data, filters, io, measure, transform, feature, exposure
 from skimage.feature import corner_fast, corner_peaks, corner_harris
 import numpy as np
 import matplotlib.pyplot as plt
@@ -98,18 +98,33 @@ dst = np.array([tl, bl, br, tr])
 xs = [x[0] for x in coord_int]
 ys = [x[1] for x in coord_int]
 
-src = np.array([[0, 0], [0, 1000], [500, 1000], [500, 0]])
+src = np.array([[0, 0], [0, 93], [68, 93], [68, 0]])
 test_coords = np.array([[-20, 421], [462, 1503], [1306, 1106], [904, -68]])
 
 persp_transform = transform.ProjectiveTransform()
 persp_transform.estimate(src, dst)
-warped = transform.warp(cropped_2, persp_transform, output_shape = (1000, 500))
+warped = transform.warp(cropped_2, persp_transform, output_shape = (93, 68))
 io.imshow(warped)
 plt.show()
 
+fd, hog_image = feature.hog(warped, orientations = 10, pixels_per_cell = (3,3), cells_per_block = (2,2),
+                            block_norm = 'L2-Hys', visualise = True)
 
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
 
+ax1.axis('off')
+ax1.imshow(warped, cmap=plt.cm.gray)
+ax1.set_title('Input image')
+ax1.set_adjustable('box-forced')
 
+# Rescale histogram for better display
+hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 0.02))
+
+ax2.axis('off')
+ax2.imshow(hog_image_rescaled, cmap=plt.cm.gray)
+ax2.set_title('Histogram of Oriented Gradients')
+ax1.set_adjustable('box-forced')
+plt.show()
 
 
 

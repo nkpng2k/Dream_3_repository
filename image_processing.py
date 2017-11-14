@@ -4,7 +4,7 @@ import glob
 from os import listdir
 from os.path import isfile, join, splitext
 from collections import Counter
-from skimage import data, color, filters, io, measure, transform, feature
+from skimage import data, color, filters, io, measure, transform, feature, exposure
 import math
 from scipy import stats
 
@@ -152,18 +152,24 @@ class CardImageProcessing(object):
         warped_images = []
         for img in images:
             intersect_coords = self._calculate_intersections(img)
-            print intersect_coords
             dst = self._orient_intersection_coords(img, intersect_coords)
-            src = np.array([[0, 0], [0, 1000], [500, 1000], [500, 0]])
+            src = np.array([[0, 0], [0, 93], [68, 93], [68, 0]])
             persp_transform = transform.ProjectiveTransform()
             persp_transform.estimate(src, dst)
-            warped = transform.warp(img, persp_transform, output_shape = (1000, 500))
+            warped = transform.warp(img, persp_transform, output_shape = (93, 68))
             warped_images.append(warped)
 
         return warped_images
 
     def vectorize_images(self, images):
-        pass
+        vectorized_images, hog_images = [], []
+        for img in images:
+            vector, hog_image = feature.hog(img, orientations = 10, pixels_per_cell = (3,3),
+                                        cells_per_block = (2,2), block_norm = 'L2-Hys', visualise = True)
+            vectorized_images.append(vector)
+            hog_images.append(hog_image)
+        return vectorized_images, hog_images
+
 
 
 
@@ -175,9 +181,27 @@ if __name__ == "__main__":
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
     warped_imgs = card_process.rotate_images(cropped_imgs)
-    io.imshow(cropped_imgs[1])
+    vectorized_imgs, hog_imgs = card_process.vectorize_images(warped_imgs)
+    io.imshow(warped_imgs[0])
     len(cropped_imgs)
     io.show()
+    cropped_imgs[0].shape
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
+
+    ax1.axis('off')
+    ax1.imshow(warped_imgs[0], cmap=plt.cm.gray)
+    ax1.set_title('Input image')
+    ax1.set_adjustable('box-forced')
+
+    # Rescale histogram for better display
+    hog_image_rescaled = exposure.rescale_intensity(hog_imgs[0], in_range=(0, 0.02))
+
+    ax2.axis('off')
+    ax2.imshow(hog_image_rescaled, cmap=plt.cm.gray)
+    ax2.set_title('Histogram of Oriented Gradients')
+    ax1.set_adjustable('box-forced')
+    plt.show()
 
     # import glob
     # images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
