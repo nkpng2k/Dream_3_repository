@@ -63,9 +63,9 @@ class CardImageProcessing(object):
             coord_int.append(coord1)
             coord_int.append(coord2)
 
-        return coord_int
+        return np.array(coord_int)
 
-    def _orient_intersection_coords(self, coord_int):
+    def _orient_intersection_coords(self, cropped, coord_int):
         xmin = coord_int[np.argmin(coord_int[:, 0]), :]
         xmax = coord_int[np.argmax(coord_int[:, 0]), :]
         ymin = coord_int[np.argmin(coord_int[:, 1]), :]
@@ -152,11 +152,12 @@ class CardImageProcessing(object):
         warped_images = []
         for img in images:
             intersect_coords = self._calculate_intersections(img)
-            dst = self._orient_intersection_coords(intersect_coords)
+            print intersect_coords
+            dst = self._orient_intersection_coords(img, intersect_coords)
             src = np.array([[0, 0], [0, 1000], [500, 1000], [500, 0]])
             persp_transform = transform.ProjectiveTransform()
             persp_transform.estimate(src, dst)
-            warped = transform.warp(cropped, persp_transform, output_shape = (1000, 500))
+            warped = transform.warp(img, persp_transform, output_shape = (1000, 500))
             warped_images.append(warped)
 
         return warped_images
@@ -170,19 +171,20 @@ class CardImageProcessing(object):
 
 if __name__ == "__main__":
     card_process = CardImageProcessing()
-    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
+    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/samples')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
     warped_imgs = card_process.rotate_images(cropped_imgs)
-    io.imshow(cropped_imgs[0])
+    io.imshow(cropped_imgs[1])
     len(cropped_imgs)
     io.show()
 
     # import glob
     # images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
     #
-    # mypath='/Users/npng/galvanize/Dream_3_repository/card_images'
+    # mypath='/Users/npng/galvanize/Dream_3_repository/samples'
     # onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
+    # onlyfiles
     #
     # images = numpy.empty(len(onlyfiles), dtype=object)
     # for n in range(0, len(onlyfiles)):
