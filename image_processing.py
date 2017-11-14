@@ -171,7 +171,7 @@ class CardImageProcessing(object):
         INPUT: List of images. Must be cropped to bounding bounding box
         OUTPUT: List of images (2-D arrays), warped to vertical orientation.
         """
-        warped_images = []
+        warped_images, top_left_corner = [], []
         for img in images:
             intersect_coords = self._calculate_intersections(img)
             dst = self._orient_intersection_coords(img, intersect_coords)
@@ -180,8 +180,9 @@ class CardImageProcessing(object):
             persp_transform.estimate(src, dst)
             warped = transform.warp(img, persp_transform, output_shape = (93, 68))
             warped_images.append(warped)
+            top_left_corner.append(warped[:30, :38])
 
-        return warped_images
+        return warped_images, top_left_corner
 
     def vectorize_images(self, images):
         """
@@ -198,32 +199,26 @@ class CardImageProcessing(object):
             hog_images.append(hog_image)
         return vectorized_images, hog_images
 
-
-
-
-
-
 if __name__ == "__main__":
     card_process = CardImageProcessing()
     raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/samples')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
-    warped_imgs = card_process.rotate_images(cropped_imgs)
+    warped_imgs, tl_corner = card_process.rotate_images(cropped_imgs)
     vectorized_imgs, hog_imgs = card_process.vectorize_images(warped_imgs)
-    io.imshow(warped_imgs[0])
-    len(cropped_imgs)
+    vectorized_corner, hog_corner = card_process.vectorize_images(tl_corner)
+    io.imshow(tl_corner[0])
     io.show()
-    cropped_imgs[0].shape
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
 
     ax1.axis('off')
-    ax1.imshow(warped_imgs[0], cmap=plt.cm.gray)
+    ax1.imshow(tl_corner[0], cmap=plt.cm.gray)
     ax1.set_title('Input image')
     ax1.set_adjustable('box-forced')
 
     # Rescale histogram for better display
-    hog_image_rescaled = exposure.rescale_intensity(hog_imgs[0], in_range=(0, 0.02))
+    hog_image_rescaled = exposure.rescale_intensity(hog_corner[0], in_range=(0, 0.02))
 
     ax2.axis('off')
     ax2.imshow(hog_image_rescaled, cmap=plt.cm.gray)
