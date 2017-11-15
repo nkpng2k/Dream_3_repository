@@ -202,22 +202,22 @@ class CardImageProcessing(object):
         vectorized_images, hog_images = [], []
         for img in images:
             vector, hog_image = feature.hog(img, orientations = 10, pixels_per_cell = (3,3),
-                                        cells_per_block = (2,2), block_norm = 'L2-Hys', visualise = True)
+                                        cells_per_block = (3,3), block_norm = 'L2-Hys', visualise = True)
             vectorized_images.append(vector)
             hog_images.append(hog_image)
         return vectorized_images, hog_images
 
 if __name__ == "__main__":
     card_process = CardImageProcessing()
-    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
+    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/samples')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
-    warped_imgs, tl_corner = card_process.training_images(cropped_imgs)
+    warped_imgs, tl_corner = card_process.rotate_images(cropped_imgs)
     vectorized_imgs, hog_imgs = card_process.vectorize_images(warped_imgs)
     vectorized_corner, hog_corner = card_process.vectorize_images(tl_corner)
-    io.imshow(tl_corner[48])
+    io.imshow(tl_corner[1])
     io.show()
-    io.imshow(warped_imgs[48])
+    io.imshow(warped_imgs[1])
     io.show()
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
