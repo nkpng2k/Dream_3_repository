@@ -15,6 +15,9 @@ class ImageClassifer(object):
         self.corner_kmeans = KMeans(n_clusters = 13)
         self.card_kmeans = KMeans(n_clusters = 13)
         self.suit_classifier = KMeans(n_clusters = 4)
+        self.corner_kmeans.fit(X_train_corners, y_train_type)
+        self.card_kmeans.fit(X_train_cards, y_train_type)
+        self.suit_classifier.fit(X_train_corners, y_train_suit)
 
     def predict_new(self, X_test):
         pass
@@ -23,7 +26,7 @@ class ImageClassifer(object):
         raw_imgs, grey_imgs = self.processor.file_info(filepath)
         c_type, c_suit = self.processor.generate_labels(delimiter = '_')
         cropped_imgs = self.processor.bounding_box_crop(grey_imgs)
-        warped_imgs, tl_corner = self.processor.rotate_images(cropped_imgs)
+        warped_imgs, tl_corner = self.processor.training_images(cropped_imgs)
         vectorized_imgs, hog_imgs = self.processor.vectorize_images(warped_imgs)
         vectorized_corner, hog_corner = self.processor.vectorize_images(tl_corner)
         self._fit_classifiers(self, vectorized_imgs, vectorized_corner, c_type, c_suit)

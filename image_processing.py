@@ -165,6 +165,14 @@ class CardImageProcessing(object):
 
         return cropped_list
 
+    def training_images(self, images):
+        card_images, corner_images = [], []
+        for img in images:
+            card_images.append(img)
+            corner_images.append(img[:30, :38])
+
+        return card_images, corner_images
+
     def rotate_images(self, images):
         """
         Perform projective transform on grey scaled images
@@ -204,10 +212,12 @@ if __name__ == "__main__":
     raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
     c_type, c_suit = card_process.generate_labels(delimiter = '_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
-    warped_imgs, tl_corner = card_process.rotate_images(cropped_imgs)
+    warped_imgs, tl_corner = card_process.training_images(cropped_imgs)
     vectorized_imgs, hog_imgs = card_process.vectorize_images(warped_imgs)
     vectorized_corner, hog_corner = card_process.vectorize_images(tl_corner)
-    io.imshow(tl_corner[0])
+    io.imshow(tl_corner[48])
+    io.show()
+    io.imshow(warped_imgs[48])
     io.show()
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
