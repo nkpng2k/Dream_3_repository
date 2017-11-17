@@ -68,6 +68,9 @@ class CardImageProcessing(object):
             coord_int.append(coord1)
             coord_int.append(coord2)
 
+        if len(coord_int) < 4:
+            coord_int = [[0,0],[0,93],[68,0],[68,93]]
+
         return np.array(coord_int)
 
     def _orient_intersection_coords(self, cropped, coord_int):
@@ -78,6 +81,12 @@ class CardImageProcessing(object):
                coord_int --> coordinates of intersection of probabilistic hough lines
         OUTPUT: dst --> array ordered coordinates (tl, bl, br, tr), specific order necessary for skimage ProjectiveTransform
         """
+        mask = coord_int == np.array([[0,0],[0,93],[68,0],[68,93]])
+        if np.all(mask):
+            tl, tr, bl, br = [0,0], [68,0], [0,93], [68,93]
+            dst = np.array([tl, bl, br, tr])
+            return dst
+
         xmin = coord_int[np.argmin(coord_int[:, 0]), :]
         xmax = coord_int[np.argmax(coord_int[:, 0]), :]
         ymin = coord_int[np.argmin(coord_int[:, 1]), :]
@@ -165,14 +174,6 @@ class CardImageProcessing(object):
 
         return cropped_list
 
-    def training_images(self, images):
-        card_images, corner_images = [], []
-        for img in images:
-            card_images.append(img)
-            corner_images.append(img[:30, :38])
-
-        return card_images, corner_images
-
     def rotate_images(self, images):
         """
         Perform projective transform on grey scaled images
@@ -188,7 +189,7 @@ class CardImageProcessing(object):
             persp_transform.estimate(src, dst)
             warped = transform.warp(img, persp_transform, output_shape = (93, 68))
             warped_images.append(warped)
-            top_left_corner.append(warped[:30, :38])
+            top_left_corner.append(warped[:30, :15])
 
         return warped_images, top_left_corner
 
@@ -236,6 +237,20 @@ if __name__ == "__main__":
     ax1.set_adjustable('box-forced')
     plt.show()
 
+
+    card_process = CardImageProcessing()
+    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
+    c_type, c_suit = card_process.generate_labels(delimiter = '_')
+    cropped_imgs = card_process.bounding_box_crop(grey_imgs)
+    warped_imgs, tl_corner = card_process.rotate_images(cropped_imgs)
+    vectorized_imgs, hog_imgs = card_process.vectorize_images(warped_imgs)
+    vectorized_corner, hog_corner = card_process.vectorize_images(tl_corner)
+    io.imshow(tl_corner[20])
+    io.show()
+    io.imshow(warped_imgs[20])
+    io.show()
+
+    c_type
     # import glob
     # images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
     #
