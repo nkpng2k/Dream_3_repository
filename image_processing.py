@@ -111,12 +111,12 @@ class CardImageProcessing(object):
         ymax = coord_int[np.argmax(coord_int[:, 1]), :]
 
         if cropped.shape[0] < cropped.shape[1]:
-            if coord_int[np.argmin(coord_int[:, 0]), :][1] > coord_int[np.argmax(coord_int[:, 0]), :][1]:
+            if xmin[1] > xmax[1]:
                 tl, tr, bl, br = xmin, ymin, ymax, xmax
             else:
                 tl, tr, bl, br = ymax, xmin, xmax, ymin
         else:
-            if coord_int[np.argmin(coord_int[:, 0]), :][1] > coord_int[np.argmax(coord_int[:, 0]), :][1]:
+            if xmin[1] > xmax[1]:
                 tl, tr, bl, br = ymin, xmax, xmin, ymax
             else:
                 tl, tr, bl, br = xmin, ymin, ymax, xmax
@@ -135,7 +135,9 @@ class CardImageProcessing(object):
                           Do not include "/" at end of filepath
         OUTPUT: list of raw images, converted to grey scale
         """
-        onlyfiles = [f for f in listdir(file_path) if isfile(join(file_path, f))]
+        onlyfiles = [f for f in listdir(file_path)
+                     if isfile(join(file_path, f))]
+
         file_ext_count = Counter()
         for f in onlyfiles:
             fname, file_type = splitext(f)
@@ -144,7 +146,8 @@ class CardImageProcessing(object):
         self.file_path = file_path
         self.file_ext = file_ext_count.most_common()[0][0]
         self.files = [f for f in onlyfiles if splitext(f)[1] == self.file_ext]
-        self.file_names = [splitext(f)[0] for f in onlyfiles if splitext(f)[1] == self.file_ext]
+        self.file_names = [splitext(f)[0] for f in onlyfiles
+                           if splitext(f)[1] == self.file_ext]
 
         raw_imgs = self._read_in_images()
         return raw_imgs
@@ -251,10 +254,12 @@ class CardImageProcessing(object):
 
         return vectorized_cards, vectorized_corner, c_type, c_suit
 
+
 if __name__ == "__main__":
+    filepath = '/Users/npng/galvanize/Dream_3_repository/samples'
     card_process = CardImageProcessing()
-    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/samples')
-    c_type, c_suit = card_process.generate_labels(delimiter = '_')
+    raw_imgs, grey_imgs = card_process.file_info(filepath)
+    c_type, c_suit = card_process.generate_labels(delimiter='_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
     warped_imgs, tl_corner = card_process.rotate_images(cropped_imgs)
     vectorized_imgs, hog_imgs = card_process.vectorize_images(warped_imgs)
@@ -264,7 +269,8 @@ if __name__ == "__main__":
     io.imshow(warped_imgs[1])
     io.show()
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4),
+                                   sharex=True, sharey=True)
 
     ax1.axis('off')
     ax1.imshow(tl_corner[0], cmap=plt.cm.gray)
@@ -272,7 +278,8 @@ if __name__ == "__main__":
     ax1.set_adjustable('box-forced')
 
     # Rescale histogram for better display
-    hog_image_rescaled = exposure.rescale_intensity(hog_corner[0], in_range=(0, 0.02))
+    hog_image_rescaled = exposure.rescale_intensity(hog_corner[0],
+                                                    in_range=(0, 0.02))
 
     ax2.axis('off')
     ax2.imshow(hog_image_rescaled, cmap=plt.cm.gray)
@@ -280,10 +287,10 @@ if __name__ == "__main__":
     ax1.set_adjustable('box-forced')
     plt.show()
 
-
+    filepath2 = '/Users/npng/galvanize/Dream_3_repository/card_images'
     card_process = CardImageProcessing()
-    raw_imgs, grey_imgs = card_process.file_info('/Users/npng/galvanize/Dream_3_repository/card_images')
-    c_type, c_suit = card_process.generate_labels(delimiter = '_')
+    raw_imgs, grey_imgs = card_process.file_info(filepath2)
+    c_type, c_suit = card_process.generate_labels(delimiter='_')
     cropped_imgs = card_process.bounding_box_crop(grey_imgs)
     warped_imgs, tl_corner = card_process.rotate_images(cropped_imgs)
     vectorized_imgs, hog_imgs = card_process.vectorize_images(warped_imgs)
@@ -294,25 +301,6 @@ if __name__ == "__main__":
     io.show()
 
     c_type
-    # import glob
-    # images = [file for file in glob.glob("/Users/npng/galvanize/Dream_3_repository/card_images/*")]
-    #
-    # mypath='/Users/npng/galvanize/Dream_3_repository/samples'
-    # onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
-    # onlyfiles
-    #
-    # images = numpy.empty(len(onlyfiles), dtype=object)
-    # for n in range(0, len(onlyfiles)):
-    #   images[n] = cv2.imread( join(mypath,onlyfiles[n]) )
-    #
-    # for f in listdir(mypath):
-    #     fname, extension = splitext(f)
-    #     print fname, extension
-
-
-
-
-
 
 """
 bottom of page

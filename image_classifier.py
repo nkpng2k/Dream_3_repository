@@ -1,9 +1,7 @@
 import image_processing
-import skimage
-import numpy as np
-from sklearn.cluster import KMeans
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
+
 
 class ImageClassifer(object):
 
@@ -11,11 +9,14 @@ class ImageClassifer(object):
         self.corner_classifier = None
         self.card_classifier = None
         self.suit_classifier = None
-        self.processor =  processor
+        self.processor = processor
 
-    def _fit_classifiers(self, X_train_cards, X_train_corners, y_train_type, y_train_suit):
-        self.corner_classifier = RandomForestClassifier(n_estimators = 1000, n_jobs = -1)
-        self.card_classifier = RandomForestClassifier(n_estimators = 1000, n_jobs = -1)
+    def _fit_classifiers(self, X_train_cards, X_train_corners,
+                         y_train_type, y_train_suit):
+        self.corner_classifier = RandomForestClassifier(n_estimators=1000,
+                                                        n_jobs=-1)
+        self.card_classifier = RandomForestClassifier(n_estimators=1000,
+                                                      n_jobs=-1)
         self.suit_classifier = GaussianNB()
         self.corner_classifier.fit(X_train_corners, y_train_type)
         self.card_classifier.fit(X_train_cards, y_train_type)
@@ -30,13 +31,15 @@ class ImageClassifer(object):
 
     def fit(self, filepath):
         raw_imgs, grey_imgs = self.processor.file_info(filepath)
-        c_type, c_suit = self.processor.generate_labels(delimiter = '_')
+        c_type, c_suit = self.processor.generate_labels(delimiter='_')
         cropped_imgs = self.processor.bounding_box_crop(grey_imgs)
         warped_imgs, tl_corner = self.processor.rotate_images(cropped_imgs)
-        vectorized_imgs, hog_imgs = self.processor.vectorize_images(warped_imgs)
-        vectorized_corner, hog_corner = self.processor.vectorize_images(tl_corner)
-        self._fit_classifiers(vectorized_imgs, vectorized_corner, c_type, c_suit)
-
+        results = self.processor.vectorize_images(warped_imgs)
+        vectorized_imgs, hog_imgs = results
+        results = self.processor.vectorize_images(tl_corner)
+        vectorized_corner, hog_corner = results
+        self._fit_classifiers(vectorized_imgs, vectorized_corner,
+                              c_type, c_suit)
 
 
 if __name__ == '__main__':
@@ -47,22 +50,19 @@ if __name__ == '__main__':
     test_filepath = '/Users/npng/galvanize/Dream_3_repository/samples'
     raw_imgs, grey_imgs = card_classifier.processor.file_info(test_filepath)
     cropped_imgs = card_classifier.processor.bounding_box_crop(grey_imgs)
-    warped_imgs, tl_corner = card_classifier.processor.rotate_images(cropped_imgs)
-    vectorized_imgs, hog_imgs = card_classifier.processor.vectorize_images(warped_imgs)
-    vectorized_corners, hog_corner = card_classifier.processor.vectorize_images(tl_corner)
+    results = card_classifier.processor.rotate_images(cropped_imgs)
+    warped_imgs, tl_corner = results
+    results = card_classifier.processor.vectorize_images(warped_imgs)
+    vectorized_imgs, hog_imgs = results
+    results = card_classifier.processor.vectorize_images(tl_corner)
+    vectorized_corners, hog_corner = results
 
     for i in xrange(len(vectorized_imgs)):
         vect_card = vectorized_imgs[i]
         vect_corner = vectorized_corners[i]
-        corner_predict, card_predict, suit_predict = card_classifier.predict_one(vect_corner, vect_card)
+        results = card_classifier.predict_one(vect_corner, vect_card)
+        corner_predict, card_predict, suit_predict = results
         print corner_predict, card_predict, suit_predict
-
-
-
-
-
-
-
 
 """
 Bottom of Page
