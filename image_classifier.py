@@ -18,6 +18,7 @@ class ImageClassifer(object):
         self.card_classifier = RandomForestClassifier(n_estimators=1000,
                                                       n_jobs=-1)
         self.suit_classifier = GaussianNB()
+
         self.corner_classifier.fit(X_train_corners, y_train_type)
         self.card_classifier.fit(X_train_cards, y_train_type)
         self.suit_classifier.fit(X_train_corners, y_train_suit)
@@ -32,12 +33,16 @@ class ImageClassifer(object):
     def fit(self, filepath):
         raw_imgs, grey_imgs = self.processor.file_info(filepath)
         c_type, c_suit = self.processor.generate_labels(delimiter='_')
+
         cropped_imgs = self.processor.bounding_box_crop(grey_imgs)
         warped_imgs, tl_corner = self.processor.rotate_images(cropped_imgs)
+
         results = self.processor.vectorize_images(warped_imgs)
         vectorized_imgs, hog_imgs = results
+
         results = self.processor.vectorize_images(tl_corner)
         vectorized_corner, hog_corner = results
+
         self._fit_classifiers(vectorized_imgs, vectorized_corner,
                               c_type, c_suit)
 
@@ -47,15 +52,15 @@ if __name__ == '__main__':
     card_process = image_processing.CardImageProcessing()
     card_classifier = ImageClassifer(card_process)
     card_classifier.fit(training_filepath)
+
+    processor = card_classifier.processor
+
     test_filepath = '/Users/npng/galvanize/Dream_3_repository/samples'
-    raw_imgs, grey_imgs = card_classifier.processor.file_info(test_filepath)
-    cropped_imgs = card_classifier.processor.bounding_box_crop(grey_imgs)
-    results = card_classifier.processor.rotate_images(cropped_imgs)
-    warped_imgs, tl_corner = results
-    results = card_classifier.processor.vectorize_images(warped_imgs)
-    vectorized_imgs, hog_imgs = results
-    results = card_classifier.processor.vectorize_images(tl_corner)
-    vectorized_corners, hog_corner = results
+    raw_imgs, grey_imgs = processor.file_info(test_filepath)
+    cropped_imgs = processor.bounding_box_crop(grey_imgs)
+    warped_imgs, tl_corner = processor.rotate_images(cropped_imgs)
+    vectorized_imgs, hog_imgs = processor.vectorize_images(warped_imgs)
+    vectorized_corners, hog_corner = processor.vectorize_images(tl_corner)
 
     for i in xrange(len(vectorized_imgs)):
         vect_card = vectorized_imgs[i]
