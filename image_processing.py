@@ -1,17 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
 from os import listdir
 from os.path import isfile, join, splitext
 from collections import Counter
-from skimage import data, color, filters, io, measure, transform, feature, exposure
-import math
+from skimage import color, filters, io, transform, feature, exposure
 from scipy import stats
+
 
 class CardImageProcessing(object):
     """
-    Class that will process card images within a file and return the processed images
-    NOTE: must run file_info(self, file_path) method before any other preprocessing
+    Class that will process card images within a file
+    returns the processed images
+    NOTE: must run file_info(self, file_path) method
+          before any other preprocessing
 
     INPUT: directory with images
     ATTRIBUTES: self.raw_img - raw images read into list
@@ -19,7 +20,8 @@ class CardImageProcessing(object):
                 self.file_names - list of files sans extensions
                 self.file_ext - file extension used to parse files
     METHODS: label_images (returns: list of labels)
-             vectorize_images (returns: array of 1-D vectors, raw images vectorized into 1-D array)
+             vectorize_images (returns: array of 1-D vectors,
+                               raw images vectorized into 1-D array)
     """
 
     def __init__(self):
@@ -41,19 +43,26 @@ class CardImageProcessing(object):
 
     def _calculate_intersections(self, cropped_img):
         """
-        Identifies probabilistic hough lines and uses those to calculate transform coordinates
+        Identifies probabilistic hough lines and
+        uses those to calculate transform coordinates
         INPUT: Single image cropped to corners of playing card
         OUTPUT: Single list of coordinates, unordered (x, y)
         """
-        edges = feature.canny(cropped_img, low_threshold = 0.2, high_threshold = 1)
-        lines = transform.probabilistic_hough_line(edges, threshold=50, line_length=275,line_gap=10)
+        edges = feature.canny(cropped_img,
+                              low_threshold=0.2, high_threshold=1)
+        lines = transform.probabilistic_hough_line(edges,
+                                                   threshold=50,
+                                                   line_length=275,
+                                                   line_gap=10)
 
         set_slopes, set_lines = set(), set()
         pos_slope, neg_slope = [], []
         for line in lines:
             p0, p1 = line
-            slope, intercept, _, _, _ = stats.linregress([p0[0], p1[0]], [p0[1], p1[1]])
-            if True not in np.isclose(round(slope, 2), list(set_slopes), atol = 1e-02):
+            slope, intercept, _, _, _ = stats.linregress([p0[0], p1[0]],
+                                                         [p0[1], p1[1]])
+            if True not in np.isclose(round(slope, 2),
+                                      list(set_slopes), atol=1e-02):
                 set_slopes.add(round(slope, 2))
                 set_lines.add(line)
                 if slope > 0:
@@ -63,27 +72,36 @@ class CardImageProcessing(object):
 
         coord_int = []
         for slope in pos_slope:
-            coord1 = np.linalg.solve(np.array([[-slope[0], 1], [-neg_slope[0][0], 1]]), np.array([slope[1], neg_slope[0][1]]))
-            coord2 = np.linalg.solve(np.array([[-slope[0], 1], [-neg_slope[1][0], 1]]), np.array([slope[1], neg_slope[1][1]]))
+            coord1 = np.linalg.solve(np.array([[-slope[0], 1],
+                                              [-neg_slope[0][0], 1]]),
+                                     np.array([slope[1],
+                                              neg_slope[0][1]]))
+            coord2 = np.linalg.solve(np.array([[-slope[0], 1],
+                                              [-neg_slope[1][0], 1]]),
+                                     np.array([slope[1],
+                                               neg_slope[1][1]]))
             coord_int.append(coord1)
             coord_int.append(coord2)
 
         if len(coord_int) < 4:
-            coord_int = [[0,0],[0,93],[68,0],[68,93]]
+            coord_int = [[0, 0], [0, 93], [68, 0], [68, 93]]
 
         return np.array(coord_int)
 
     def _orient_intersection_coords(self, cropped, coord_int):
         """
-        Identifies orientation of playing card. Designates coordinates from coord_int as
+        Identifies orientation of playing card.
+        Designates coordinates from coord_int as
         top left (tr), top right (tr), bottom left (bl), bottom right (br)
         INPUT: Single image cropped to corners of playing card
-               coord_int --> coordinates of intersection of probabilistic hough lines
-        OUTPUT: dst --> array ordered coordinates (tl, bl, br, tr), specific order necessary for skimage ProjectiveTransform
+               coord_int --> coordinates of intersection of
+                             probabilistic hough lines
+        OUTPUT: dst --> array ordered coordinates (tl, bl, br, tr),
+                        specific order needed for skimage ProjectiveTransform
         """
-        mask = coord_int == np.array([[0,0],[0,93],[68,0],[68,93]])
+        mask = coord_int == np.array([[0, 0], [0, 93], [68, 0], [68, 93]])
         if np.all(mask):
-            tl, tr, bl, br = [0,0], [68,0], [0,93], [68,93]
+            tl, tr, bl, br = [0, 0], [68, 0], [0, 93], [68, 93]
             dst = np.array([tl, bl, br, tr])
             return dst
 
@@ -110,8 +128,11 @@ class CardImageProcessing(object):
 
     def file_info(self, file_path):
         """
-        Reads all images in a file. Identifies most common file extension as file to take as input
-        INPUT: String --> filepath to directory ('User/username/data/all_images') . do not include "/" at end of filepath
+        Reads all images in a file.
+        Identifies most common file extension as file to take as input
+        INPUT: String --> filepath to directory
+                          ('User/username/data/all_images').
+                          Do not include "/" at end of filepath
         OUTPUT: list of raw images, converted to grey scale
         """
         onlyfiles = [f for f in listdir(file_path) if isfile(join(file_path, f))]
@@ -128,20 +149,22 @@ class CardImageProcessing(object):
         raw_imgs = self._read_in_images()
         return raw_imgs
 
-    def generate_labels(self, delimiter = None,labels = None):
+    def generate_labels(self, delimiter=None, labels=None):
         """
-        will manually assign labels for each of the images or if no manual labels are
-        provided will pull the characters up until a specified delimiter as the label
+        will manually assign labels for each of the images or if no manual
+        labels are provided will pull the characters up until
+        a specified delimiter as the label
 
-        INPUT: labels --> (list or tuples) optional, assign manual labels for images
+        INPUT: labels --> (list or tuples) optional, assign labels for images
                           tuple will have this order: (card type, card suit)
-               delimiter --> (string) delimiter that will is expected to separate the card type and
-                             card suit. example: queen_heart.png - delimiter = '_'
+               delimiter --> (string) delimiter that is expected to separate
+                             the card type and card suit.
+                             Example: queen_heart.png - delimiter = '_'
         OUTPUT: 2 lists --> card type and card suit
         """
         card_type = []
         card_suit = []
-        if labels == None:
+        if labels is None:
             for name in self.file_names:
                 card_type.append(name.split(delimiter)[0])
                 card_suit.append(name.split(delimiter)[1])
@@ -154,9 +177,11 @@ class CardImageProcessing(object):
     def bounding_box_crop(self, images):
         """
         Detect edges, mask everything outside of edges to 0,
-        determine coordinates for corners of card, crop box tangent to corners of card
+        determine coordinates for corners of card,
+        crop box tangent to corners of card
         INPUT: List of raw images, grey scaled
-        OUTPUT: List of cropped images. For playing cards, will crop to corners of card
+        OUTPUT: List of cropped images. For playing cards,
+        will crop to corners of card
         """
         cropped_list = []
         for img in images:
@@ -165,10 +190,10 @@ class CardImageProcessing(object):
 
             coords = np.argwhere(img > 0.9)
 
-            miny, minx = coords.min(axis = 0)
-            maxy, maxx = coords.max(axis = 0)
+            miny, minx = coords.min(axis=0)
+            maxy, maxx = coords.max(axis=0)
 
-            cropped = img[miny:maxy,minx:maxx]
+            cropped = img[miny:maxy, minx:maxx]
 
             cropped_list.append(cropped)
 
@@ -187,7 +212,8 @@ class CardImageProcessing(object):
             src = np.array([[0, 0], [0, 93], [68, 93], [68, 0]])
             persp_transform = transform.ProjectiveTransform()
             persp_transform.estimate(src, dst)
-            warped = transform.warp(img, persp_transform, output_shape = (93, 68))
+            warped = transform.warp(img, persp_transform,
+                                    output_shape=(93, 68))
             warped_images.append(warped)
             top_left_corner.append(warped[:30, :15])
 
@@ -197,16 +223,33 @@ class CardImageProcessing(object):
         """
         Generate HOG vectors for grey scaled images.
         INPUT: List of images. Images are array type.
-        OUTPUT: vectorized_images --> list of 1-D arrays. Feature Vectors for each image
+        OUTPUT: vectorized_images --> list of 1-D arrays.
+                                      Feature Vectors for each image
                 hog_images --> list of 2-D arrays, HOG representation of images
         """
         vectorized_images, hog_images = [], []
         for img in images:
-            vector, hog_image = feature.hog(img, orientations = 10, pixels_per_cell = (3,3),
-                                        cells_per_block = (3,3), block_norm = 'L2-Hys', visualise = True)
+            vector, hog_image = feature.hog(img, orientations=10,
+                                            pixels_per_cell=(3, 3),
+                                            cells_per_block=(3, 3),
+                                            block_norm='L2-Hys',
+                                            visualise=True)
             vectorized_images.append(vector)
             hog_images.append(hog_image)
         return vectorized_images, hog_images
+
+    def reduce_dimensions(self, image_vectors):
+        pass
+
+    def pipe_images(self, filepath):
+        raw_imgs, grey_imgs = self.file_info(filepath)
+        c_type, c_suit = self.generate_labels(delimiter='_')
+        cropped_imgs = self.bounding_box_crop(grey_imgs)
+        warped_imgs, tl_corner = self.rotate_images(cropped_imgs)
+        vectorized_cards, hog_cards = self.vectorize_images(warped_imgs)
+        vectorized_corner, hog_corner = self.vectorize_images(tl_corner)
+
+        return vectorized_cards, vectorized_corner, c_type, c_suit
 
 if __name__ == "__main__":
     card_process = CardImageProcessing()
